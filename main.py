@@ -2,12 +2,11 @@ import os
 import pygame
 import random
 from grid import Grid
-
+from astar import astar
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
 blue = (0, 0, 255)
-
 
 #UTILITIES ============================
 
@@ -27,17 +26,15 @@ def DisplayGrid(grid, display, dis_width, dis_height, scale = 15):
   for y in range(grid.vertDiameter):
     for x in range(grid.horzDiameter):
       tile = grid.array[x][y]
-      tilePos = [dis_width/2 + (tile.gridPoint[0] * boxSize) - boxSize/2, dis_height/2 - (tile.gridPoint[1] * boxSize) - boxSize/2]
+      tilePos = [dis_width/2 + (tile.position[0] * boxSize) - boxSize/2, dis_height/2 - (tile.position[1] * boxSize) - boxSize/2]
       rect = pygame.Rect(tilePos[0], tilePos[1], boxSize, boxSize)
 
-      if (tile.type == "s"):
-        pygame.draw.rect(display, white, rect)
-      elif (tile.type == "x"):
-        pygame.draw.rect(display, red, rect)
+      if (tile.type != "." and tile.color != None):
+        pygame.draw.rect(display, tile.color, rect)
       else:
         pygame.draw.rect(display, white, rect, 1)
 
-      totalText = SetText(str(len(tile.neighbors)), tilePos[0] + (boxSize/2), tilePos[1] + (boxSize/2), 10)
+      totalText = SetText(str(tile.position), tilePos[0] + (boxSize/2), tilePos[1] + (boxSize/2), 7)
       display.blit(totalText[0], totalText[1])
 
 def SetText(string, coordx, coordy, fontSize): #Function to set text
@@ -56,13 +53,14 @@ if __name__ == "__main__":
     pygame.init()
     clearConsole()
 
-    dis_width = 800
-    dis_height = 800
+    dis_width = 600
+    dis_height = 600
 
     dis = pygame.display.set_mode((dis_width, dis_height))
     pygame.display.set_caption('Grid GAme')
 
     grid = Grid(10,10)
+    path = None
     print(grid)
 
     loop = True
@@ -76,16 +74,17 @@ if __name__ == "__main__":
               if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                   print("left")
               elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                  print("right")
+                  grid.Mutate()
               elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                  print("up")
+                  path = astar(grid, grid.startTile.index, grid.endTile.index)
+                  print(path)
               elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
                   print("down")
               elif event.key == pygame.K_SPACE:
-                  grid.Randomize(2)
+                  grid.Randomize(3)
 
       dis.fill(black)
-      DisplayGrid(grid, dis, dis_width, dis_height, 30)
+      DisplayGrid(grid, dis, dis_width, dis_height, 25)
       pygame.display.update()
 
     pygame.quit()
