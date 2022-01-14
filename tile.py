@@ -6,8 +6,10 @@ class Tile:
     self.x = self.position[0]
     self.y = self.position[1]
     self.type = type
+    self.type_changed = True
     self.color = color
     self.neighbors = []
+    self.rect = None
   
   def reset(self):
     self.type = "."

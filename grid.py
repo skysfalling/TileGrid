@@ -13,16 +13,17 @@ class Grid:
     def __init__(self, hRadius, vRadius):
         #start tile
         self.array = [[Tile([0, 0], ".")]]
-        self.tiles = []
+        self.all_tiles = []
+        self.display_rects = []
         self.hRadius = hRadius
         self.vRadius = vRadius
         self.horzDiameter = (self.hRadius * 2) + 1
         self.vertDiameter = (self.vRadius * 2) + 1
-        self.startTile = Tile([-hRadius + 2, -vRadius + 2])
-        self.endTile = Tile([hRadius - 2, vRadius - 2])
+        self.startTile = Tile([-hRadius + 1, -vRadius + 1])
+        self.endTile = Tile([hRadius - 1, vRadius - 1])
 
-        self.tiles.append(self.startTile)
-        self.tiles.append(self.endTile)
+        self.all_tiles.append(self.startTile)
+        self.all_tiles.append(self.endTile)
 
         self.ResetGridSize()
 
@@ -35,7 +36,6 @@ class Grid:
 
     def AddTile(self, x, y, type, color = None):
         #print("<<NEW TILE (", x, y, ") >>")
-
         radiusReset = False
 
         #<<<if tile point is outside current grid height>>>
@@ -58,17 +58,20 @@ class Grid:
             self.vertDiameter = (self.vRadius * 2) +1
 
         newTile = Tile([x, y], type, color)  #create variable
-        self.tiles.append(newTile)  #add to tile list
+        self.all_tiles.append(newTile)  #add to tile list
         gridArrayIndex = self.CoordToArrayIndex(
             newTile.position)  #get array index of coordinates
         self.array[gridArrayIndex[0]][
             gridArrayIndex[1]] = newTile  #set index to new tile
 
+        #set type changed
+        newTile.type_changed = True
+
     def ResetGridSize(self):
         print("hD:",self.horzDiameter)
         print("vD:",self.vertDiameter)
         # CREATE EMPTY ROWS =============================================
-        self.array = [[Tile([0, 0], ".")]]  #reset grid
+        self.array = [[Tile([0, 0], ".")]]  #reset grid array
 
         for r in range(self.vRadius):
             self.array.insert(0, [Tile([0, r + 1])])  #positive numbers
@@ -88,7 +91,7 @@ class Grid:
                 self.array[r].insert(0, Tile([-(j + 1), -i]))
 
         #place tiles in their spots
-        for tile in self.tiles:
+        for tile in self.all_tiles:
             tileIndex = self.CoordToArrayIndex(tile.position)
             #print("tile coord:", tile.position, "index:", tileIndex)
             self.array[tileIndex[0]][tileIndex[1]] = tile
@@ -97,6 +100,13 @@ class Grid:
         #set start and end tiles
         self.AddTile(self.startTile.x, self.startTile.y, "s", green) #set start point
         self.AddTile(self.endTile.x, self.endTile.y, "e", red) #set end point
+
+        #add each created tile to all_tiles list
+        self.all_tiles = []
+        for i in range(len(self.array)):
+          for j in range(len(self.array[0])):
+            self.all_tiles.append(self.array[i][j])
+
 
         #set the neighbors for each tile in grid
         self.SetAllNeighbors()
@@ -128,6 +138,11 @@ class Grid:
             #print("Get Tile:", tileIndex)
             return self.array[tileIndex[0]][tileIndex[1]]
         else: return None
+
+    def GetTileFromIndex(self, r, c):
+      if r >= 0 and r < self.horzDiameter and c >= 0 and c < self.vertDiameter:
+        return self.array[r][c]
+      else: return None
 
     def CoordToArrayIndex(self, coord):
         x = coord[0]
@@ -172,7 +187,7 @@ class Grid:
 
               if tile.type == "." and n_count >= 2:
                 tile.type = "x"
-                tile.color = blue
+                tile.color = white
 
       '''#second pass over ... eliminate eye sores
       for y in range(self.vertDiameter):
