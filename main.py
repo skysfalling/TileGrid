@@ -56,16 +56,16 @@ def DisplayGrid(grid, display, dis_width, dis_height, box_size = 15):
   if tiles_changed:
     display.fill(black)
 
-    help_1 = SetText("Left Click to place wall // Right Click to remove", 200, 15, 15)
+    help_1 = SetText("Left Click to place wall // Right Click to remove", 200, 15, 10)
     display.blit(help_1[0], help_1[1])
 
-    help_2 = SetText("Space Bar to randomize // Up arrow to find ASTAR path", 250, 30, 15)
+    help_2 = SetText("Space Bar to randomize // Up arrow to find ASTAR path", 250, 30, 10)
     display.blit(help_2[0], help_2[1])
 
-    help_3 = SetText("(less walls = longer astar load time)", 200, 45, 15)
+    help_3 = SetText("(less walls = longer astar load time)", 200, 45, 10)
     display.blit(help_3[0], help_3[1])
 
-    help_4 = SetText("green = path being checked // blue = best path", 200, 60, 15)
+    help_4 = SetText("green = path being checked // blue = best path", 200, 60, 10)
     display.blit(help_4[0], help_4[1])
 
 
@@ -106,7 +106,7 @@ def UpdateGrid(scale = 45):
 
 
 def SetText(string, coordx, coordy, fontSize): #Function to set text
-  font = pygame.font.Font('freesansbold.ttf', fontSize) 
+  font = pygame.font.Font('akira.otf', fontSize) 
   #(0, 0, 0) is black, to make black text
   text = font.render(string, True, white) 
   textRect = text.get_rect()
