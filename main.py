@@ -56,6 +56,19 @@ def DisplayGrid(grid, display, dis_width, dis_height, box_size = 15):
   if tiles_changed:
     display.fill(black)
 
+    help_1 = SetText("Left Click to place wall // Right Click to remove", 200, 15, 15)
+    display.blit(help_1[0], help_1[1])
+
+    help_2 = SetText("Space Bar to randomize // Up arrow to find ASTAR path", 250, 30, 15)
+    display.blit(help_2[0], help_2[1])
+
+    help_3 = SetText("(less walls = longer astar load time)", 200, 45, 15)
+    display.blit(help_3[0], help_3[1])
+
+    help_4 = SetText("green = path being checked // blue = best path", 200, 60, 15)
+    display.blit(help_4[0], help_4[1])
+
+
     #for each index in double array
     for y in range(grid.vertDiameter):
       for x in range(grid.horzDiameter):
@@ -172,7 +185,7 @@ def Display_Node_Path(grid, node_path, closed_list = None):
 
   for coord in path:
     tile_type = grid.GetTile(coord[0], coord[1]).type
-    grid.AddTile(coord[0], coord[1], "p", dark_green)
+    grid.AddTile(coord[0], coord[1], "p", blue)
 
   UpdateGrid()
 
@@ -295,11 +308,11 @@ def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
     # ========================= UPDATE DISPLAY ==============================
 
     # display current_node path
-    #Display_Path_From_Node(grid, current_node, closed_list)
+    Display_Path_From_Node(grid, current_node, closed_list)
 
     #get & display best path
     best_paths = Set_Best_Paths(current_node, best_paths)
-    #Display_Node_Path(grid, best_paths[0], closed_list)
+    Display_Node_Path(grid, best_paths[0], closed_list)
 
     #print("\n>> best paths length:", len(best_paths[0]))
 
@@ -392,10 +405,6 @@ if __name__ == "__main__":
 
     loop = True
 
-
-
-
-
     # <<<<<<<<<< MAIN UPDATE LOOP >>>>>>>>>>>>>>>>>>>>>>>
 
     mouse_is_dragging = False
@@ -474,7 +483,8 @@ if __name__ == "__main__":
               if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                   print("left")
               elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                  grid.Mutate()
+                  #grid.Mutate()
+                  print("right");
               elif event.key == pygame.K_UP or event.key == pygame.K_w:
                   Find_ASTAR_Path(grid, grid.startTile.position, grid.endTile.position)
                   print(grid)
