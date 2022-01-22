@@ -13,10 +13,6 @@ dark_green = (0, 150, 0)
 purple = (255, 0, 255)
 
 
-dis_width = 600
-dis_height = 600
-
-dis = pygame.display.set_mode((dis_width, dis_height))
 
 
 # ===============================================================
@@ -40,7 +36,8 @@ def clearConsole():
 
 def DisplayGrid(grid, display, dis_width, dis_height, box_size = 15):
   #print("Grid Display Radius ", grid.hRadius, grid.vRadius)
-  tiles_changed = False
+
+  display.fill(black)
 
   #for each index in double array
   for y in range(grid.vertDiameter):
@@ -49,60 +46,34 @@ def DisplayGrid(grid, display, dis_width, dis_height, box_size = 15):
       #create rectangles
       tile = grid.array[x][y]
 
-      if tile.type_changed:
-        tiles_changed = True
-        continue
 
-  if tiles_changed:
-    display.fill(black)
+      tilePos = [dis_width/2 + (tile.position[0] * box_size) - box_size/2, dis_height/2 - (tile.position[1] * box_size) - box_size/2]
+      tile.rect = pygame.Rect(tilePos[0], tilePos[1], box_size, box_size)
 
-    help_1 = SetText("Left Click to place wall // Right Click to remove", 200, 15, 10)
-    display.blit(help_1[0], help_1[1])
-
-    help_2 = SetText("Space Bar to randomize // Up arrow to find ASTAR path", 250, 30, 10)
-    display.blit(help_2[0], help_2[1])
-
-    help_3 = SetText("(less walls = longer astar load time)", 200, 45, 10)
-    display.blit(help_3[0], help_3[1])
-
-    help_4 = SetText("green = path being checked // blue = best path", 200, 60, 10)
-    display.blit(help_4[0], help_4[1])
+      # add rect to display rects array for mouse click check
+      grid.display_rects.append(tile.rect)
 
 
-    #for each index in double array
-    for y in range(grid.vertDiameter):
-      for x in range(grid.horzDiameter):
+      if tile.type == ".":
+        pygame.draw.rect(display, white, tile.rect, 1)
+      elif tile.color != None:
+        pygame.draw.rect(display, tile.color, tile.rect)
 
-        #create rectangles
-        tile = grid.array[x][y]
+      if box_size > 25:
+        totalText = SetText(str(tile.position), tilePos[0] + (box_size/2), tilePos[1] + (box_size/2), 7)
+        display.blit(totalText[0], totalText[1])
 
+      #reset type changed
+      tile.type_changed = False
 
-        tilePos = [dis_width/2 + (tile.position[0] * box_size) - box_size/2, dis_height/2 - (tile.position[1] * box_size) - box_size/2]
-        tile.rect = pygame.Rect(tilePos[0], tilePos[1], box_size, box_size)
-
-        # add rect to display rects array for mouse click check
-        grid.display_rects.append(tile.rect)
-
-
-        if tile.type == ".":
-          pygame.draw.rect(display, white, tile.rect, 1)
-        elif tile.color != None:
-          pygame.draw.rect(display, tile.color, tile.rect)
-
-        if box_size > 25:
-          totalText = SetText(str(tile.position), tilePos[0] + (box_size/2), tilePos[1] + (box_size/2), 7)
-          display.blit(totalText[0], totalText[1])
-
-        #reset type changed
-        tile.type_changed = False
-
-    pygame.display.flip()
+  pygame.display.flip()
+  pygame.display.update()
+  clock.tick(300)
 
 
 
 def UpdateGrid(scale = 45):
   DisplayGrid(grid, dis, dis_width, dis_height, scale)
-  clock.tick(60)
 
 
 def SetText(string, coordx, coordy, fontSize): #Function to set text
@@ -164,9 +135,7 @@ def Display_Path_From_Node(grid, current_node, closed_list = None):
     #if not displayed as best path, don't change
     tile_type = grid.GetTile(coord[0], coord[1]).type
     if tile_type != "b":
-      grid.AddTile(coord[0], coord[1], "p", dark_green)
-
-
+      grid.AddTile(coord[0], coord[1], "p", green)
 
   UpdateGrid()
 
@@ -243,10 +212,11 @@ def Find_Node_Closest_To_End(node_list, end):
   
   return closest
 
-def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
-
+def Find_ASTAR_Path(grid, start_coord, end_coord, display_path = False, diagonal_movement = False):
   print("\nASTAR => start_coord: ", start_coord, "end_coord: ", end_coord)
+  
   if diagonal_movement: print(">>>> diag move allowed")
+
   #create start/end nodes
   start_node = Node(start_coord)
   end_node = Node(end_coord)
@@ -263,24 +233,31 @@ def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
 
   # Adding a stop condition
   outer_iterations = 0
-  max_iterations = (len(grid.array[0]) ** 4) // 2
-  #print("MAX ITERATIONS: ", max_iterations)
+  max_iterations = (len(grid.array[0]) ** 4)
+  print("MAX ITERATIONS: ", max_iterations)
 
+  
   # << START OF LOOP >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   #while the open list is not empty
   while len(open_list) != 0:
     outer_iterations += 1
-    #print("\n==============\nIteration: ", outer_iterations)
+    
+    if outer_iterations % 100 == 0:
+      print("Iteration: ", outer_iterations)
+      print("Open List Length: ", len(open_list))
+
+
+    pygame.event.get() #prevent window from not responding
 
     # if reaches max iterations or closed list is way greater than best path
     if outer_iterations > max_iterations :
       # if we hit this point return the path such as it is
       # it will not contain the destination
       print(">>>>giving up on pathfinding too many iterations")
-      Display_Path_From_Node(grid, current_node, closed_list)
+      #Display_Path_From_Node(grid, current_node, closed_list)
       Display_Node_Path(grid, best_paths[0])
       closest_node = Find_Node_Closest_To_End(closed_list, end_node)
-      Display_Path_From_Node(grid, closest_node, closed_list)
+      #Display_Path_From_Node(grid, closest_node, closed_list)
       print("Iterations: ", outer_iterations)
 
       return return_coord_path(current_node)  
@@ -296,6 +273,9 @@ def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
       if node.f < current_node.f:
         current_node = node
 
+      if node.f > current_node.f + 1:
+        open_list.remove(node)
+
     #pop current_node from open list
     open_list.remove(current_node)
 
@@ -308,11 +288,13 @@ def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
     # ========================= UPDATE DISPLAY ==============================
 
     # display current_node path
-    Display_Path_From_Node(grid, current_node, closed_list)
+    if display_path:
+        Display_Path_From_Node(grid, current_node, closed_list)
 
     #get & display best path
     best_paths = Set_Best_Paths(current_node, best_paths)
-    Display_Node_Path(grid, best_paths[0], closed_list)
+    if display_path:
+        Display_Node_Path(grid, best_paths[0])
 
     #print("\n>> best paths length:", len(best_paths[0]))
 
@@ -393,22 +375,59 @@ def Find_ASTAR_Path(grid, start_coord, end_coord, diagonal_movement = False):
 # ===============================================================
 if __name__ == "__main__":
 
+    # INIT ======================
+    print("\n\n>>  This is a grid that is organized by a standard coordinate system,")
+    print(">>  allowing the developer to expand and randomize the grid in any direction.")
+    print(">>  I've used this organization to implement the ASTAR algorithm.\n\n")
+
+    i_display_path = input("Display Active Pathfinding?\n    - this will display the algorithm on the grid\n      as it is finding the best path, \n      but the algorithm will run slower. (y/n)")
+    display_path = True
+    if i_display_path.lower() == "n":
+      display_path = False
+
+    i_allow_diagonal_movement = input("Allow Diagonal Movement? (y/n)")
+    diagonal_movement = False
+    if i_allow_diagonal_movement.lower() == "y":
+      diagonal_movement = True
+
+    # CREATE WINDOW AND GRAPH =======================
+
+    print("\n\n:::::::::::::::::::::::: CONTROLS :::::::::::::::::::::::::::::::::::::::::::")
+    print(":::: LEFT CLICK to place wall // RIGHT CLICK to remove                   ::::")
+    print(":::: Hover over square -> press 's' to set start // press 'e' to set end ::::")
+    print(":::: SPACE to randomize // UP ARROW to find ASTAR path                   ::::")
+    print(":::: DOWN ARROW to print current grid state to console                   ::::")
+    print(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
+
+    print("\nDISPLAY NOTES --> green == path being checked // blue == best path\n\n")
+
+
+    dis_width = 600
+    dis_height = 600
+
+    dis = pygame.display.set_mode((dis_width, dis_height))
+
     pygame.init()
+    pygame.display.init()
     clock = pygame.time.Clock()
-    clearConsole()
+    #clearConsole()
 
     pygame.display.set_caption('Grid GAme')
 
-
-    grid = Grid(4,4)
+    grid = Grid(6,6)
     print(grid)
 
-    loop = True
+
+    tile_change_override = False
+
+
+    
 
     # <<<<<<<<<< MAIN UPDATE LOOP >>>>>>>>>>>>>>>>>>>>>>>
 
     mouse_is_dragging = False
     mouse_button_pressed = -1
+    loop = True
     while loop:
 
 
@@ -447,7 +466,6 @@ if __name__ == "__main__":
                 clicked_tile.type = "."
                 clicked_tile.type_changed = True
 
-
           elif event.type == pygame.MOUSEBUTTONUP:
             mouse_is_dragging = False
             mouse_button_pressed = -1
@@ -478,19 +496,53 @@ if __name__ == "__main__":
                   clicked_tile.type = "."
                   clicked_tile.type_changed = True
 
-
           if event.type == pygame.KEYDOWN:
-              if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                  print("left")
-              elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                  #grid.Mutate()
-                  print("right");
+              if event.key == pygame.K_e:
+                pos = pygame.mouse.get_pos()
+
+                #clear end tile
+                grid.GetTile(grid.endTile.position[0], grid.endTile.position[1]).type = "."
+                grid.endTile.color = black
+                grid.endTile.type_changed = True
+
+                # get tile from grid
+                for tile in grid.all_tiles:
+                  if tile.rect != None:
+                    if tile.rect.collidepoint(pos):
+                      #print("Mouse selected: ", tile.position)
+                      grid.endTile = tile
+                      grid.endTile.color = red
+                      grid.endTile.type = "e"
+                      grid.endTile.type_changed = True
+
+              elif event.key == pygame.K_s:
+                pos = pygame.mouse.get_pos()
+
+                #clear start tile
+                grid.GetTile(grid.startTile.position[0], grid.startTile.position[1]).type = "."
+                grid.startTile.color = black
+                grid.startTile.type_changed = True
+
+                # get tile from grid
+                for tile in grid.all_tiles:
+                  if tile.rect != None:
+                    if tile.rect.collidepoint(pos):
+                      #print("Mouse selected: ", tile.position)
+                      grid.startTile = tile
+                      grid.startTile.color = green
+                      grid.startTile.type = "s"
+                      grid.startTile.type_changed = True
+
+
               elif event.key == pygame.K_UP or event.key == pygame.K_w:
-                  Find_ASTAR_Path(grid, grid.startTile.position, grid.endTile.position)
+                  Find_ASTAR_Path(grid, grid.startTile.position, grid.endTile.position, display_path, diagonal_movement)
                   print(grid)
                   break
-              elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
-                  print("down")
+
+              elif event.key == pygame.K_DOWN:
+                print("\n\n >> CURRENT GRID")
+                print(grid)
+
               elif event.key == pygame.K_SPACE:
                   grid.Randomize(3)
 

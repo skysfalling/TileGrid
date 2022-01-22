@@ -68,8 +68,8 @@ class Grid:
         newTile.type_changed = True
 
     def ResetGridSize(self):
-        print("hD:",self.horzDiameter)
-        print("vD:",self.vertDiameter)
+        print("horizontal radius:",self.hRadius)
+        print("vertical radius:",self.vRadius)
         # CREATE EMPTY ROWS =============================================
         self.array = [[Tile([0, 0], ".")]]  #reset grid array
 
@@ -111,10 +111,7 @@ class Grid:
         #set the neighbors for each tile in grid
         self.SetAllNeighbors()
 
-
-
 # ============= SET TILE VALUES ==========================================
-
     def GetTileNeighbors(self, x, y):
         possibleNeighbors = [self.GetTile(x - 1, y), self.GetTile(x + 1, y), self.GetTile(x, y - 1), self.GetTile(x, y + 1)]
         #print(x, ",", y, ":")
@@ -172,7 +169,6 @@ class Grid:
       self.AddTile(self.endTile.x, self.endTile.y, "e", red) #set end point
       self.SetAllNeighbors()
 
-
 # ======== MUTATION ====================================================
     def Mutate(self):
 
@@ -200,8 +196,6 @@ class Grid:
                 tile.color = None'''
 
       self.SetAllNeighbors()
-
-
 
 # ========================================================
 
